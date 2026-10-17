@@ -1,0 +1,1390 @@
+import sqlite3
+import tkinter as tk
+from tkinter import messagebox
+import os
+
+
+# =========================================================
+# DATABASE
+# =========================================================
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "mycourse.db")
+
+
+def get_connection():
+    return sqlite3.connect(DB_PATH)
+
+
+def create_table():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS courses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            course_code TEXT NOT NULL UNIQUE,
+            course_name TEXT NOT NULL,
+            skills TEXT NOT NULL,
+            features TEXT NOT NULL
+        )
+    """)
+
+    # =====================================================
+    # ALL COURSES
+    # =====================================================
+    # INSERT OR IGNORE ONLY
+    # Existing data will NOT be deleted or replaced.
+    # =====================================================
+
+    courses_data = [
+
+        (
+            "BSIT",
+            "BS Information Technology",
+            "Programming, Web Development, Database, Networking, Software",
+            "Information Technology focuses on programming, software development, databases, networking, web development, and IT infrastructure."
+        ),
+
+        (
+            "BSCS",
+            "BS Computer Science",
+            "Programming, Algorithms, Software Development, Mathematics, Database",
+            "Computer Science focuses on programming, algorithms, software development, computer systems, databases, and computational problem solving."
+        ),
+
+        (
+            "BSEE",
+            "BS Electrical Engineering",
+            "Electrical Systems, Mathematics, Electronics, Power Systems, Engineering",
+            "Electrical Engineering focuses on electrical systems, power generation, electrical design, control systems, and electrical installations."
+        ),
+
+        (
+            "BSBA",
+            "BS Business Administration",
+            "Management, Marketing, Finance, Entrepreneurship, Communication",
+            "Business Administration prepares students for business operations, management, marketing, finance, human resources, and entrepreneurship."
+        ),
+
+        (
+            "BSTM",
+            "BS Tourism Management",
+            "Tourism, Travel, Communication, Customer Service, Events",
+            "Tourism Management focuses on tourism operations, travel services, tour planning, destination management, and customer service."
+        ),
+
+        (
+            "BSHM",
+            "BS Hospitality Management",
+            "Hospitality, Hotel Operations, Food Service, Events, Customer Service",
+            "Hospitality Management prepares students for hotel operations, food and beverage services, events, hospitality management, and customer service."
+        ),
+
+        (
+            "BSCRIM",
+            "BS Criminology",
+            "Law Enforcement, Investigation, Criminal Justice, Public Safety",
+            "Criminology studies crime, criminal behavior, law enforcement, investigation, public safety, and criminal justice."
+        ),
+
+        (
+            "BSED",
+            "BS Education",
+            "Teaching, Communication, Classroom Management, Assessment",
+            "Education prepares students for teaching careers through educational theory, classroom management, curriculum development, and teaching practice."
+        ),
+
+        (
+            "BSN",
+            "BS Nursing",
+            "Patient Care, Health Assessment, Clinical Practice, Communication",
+            "Nursing focuses on patient care, health assessment, clinical practice, community health, and healthcare services."
+        ),
+
+        (
+            "BSArch",
+            "BS Architecture",
+            "Design, Drafting, Planning, CAD, Building Systems",
+            "Architecture focuses on architectural design, planning, drafting, building systems, and development of functional spaces."
+        ),
+
+        (
+            "BSML",
+            "BS Medical Laboratory Science",
+            "Laboratory Testing, Medical Science, Research, Diagnostic Procedures",
+            "Medical Laboratory Science focuses on laboratory testing, specimen analysis, diagnostic procedures, and laboratory techniques."
+        ),
+
+        (
+            "BSPT",
+            "BS Physical Therapy",
+            "Rehabilitation, Anatomy, Exercise, Patient Care, Assessment",
+            "Physical Therapy focuses on physical rehabilitation, movement assessment, therapeutic exercises, and patient care."
+        ),
+
+        (
+            "BSPhar",
+            "BS Pharmacy",
+            "Pharmaceutical Science, Medicine, Patient Care, Drug Information",
+            "Pharmacy focuses on pharmaceutical sciences, medication management, drug information, and patient care."
+        ),
+
+        (
+            "BSCE",
+            "BS Civil Engineering",
+            "Construction, Structural Design, Mathematics, Infrastructure",
+            "Civil Engineering focuses on structural design, construction, transportation, geotechnical engineering, and infrastructure."
+        ),
+
+        (
+            "BSCpE",
+            "BS Computer Engineering",
+            "Hardware, Software, Embedded Systems, Electronics, Programming",
+            "Computer Engineering combines computer science and electronics engineering, focusing on hardware, software, and embedded systems."
+        ),
+
+        (
+            "BSECE",
+            "BS Electronics Engineering",
+            "Electronics, Telecommunications, Automation, Communication Systems",
+            "Electronics Engineering focuses on electronic systems, communications, automation, telecommunications, and electronic devices."
+        ),
+
+        (
+            "BSA",
+            "BS Accountancy",
+            "Accounting, Auditing, Taxation, Finance, Financial Reporting",
+            "Accountancy develops skills in accounting, auditing, taxation, financial reporting, and financial management."
+        ),
+
+        (
+            "BSMA",
+            "BS Management Accounting",
+            "Accounting, Finance, Business Analysis, Information Systems",
+            "Management Accounting combines accounting principles with management, financial analysis, and accounting information systems."
+        ),
+
+        (
+            "BAPA",
+            "BA Political Science",
+            "Politics, Government, Public Policy, Research, Communication",
+            "Political Science studies government, politics, public policy, political institutions, international relations, and civic affairs."
+        ),
+
+        (
+            "BSPsych",
+            "BS Psychology",
+            "Human Behavior, Communication, Research, Psychological Assessment",
+            "Psychology studies human behavior, mental processes, psychological assessment, research, and applications of psychology."
+        ),
+
+        (
+            "BACOM",
+            "BA Communication",
+            "Communication, Writing, Media, Public Speaking, Digital Content",
+            "Communication develops skills for media, broadcasting, digital content, public relations, journalism, and communication-related fields."
+        )
+    ]
+
+    cur.executemany("""
+        INSERT OR IGNORE INTO courses
+        (course_code, course_name, skills, features)
+        VALUES (?, ?, ?, ?)
+    """, courses_data)
+
+    conn.commit()
+    conn.close()
+
+
+# =========================================================
+# PHINMA COURSE INFORMATION
+# =========================================================
+
+COURSE_INFO = {
+
+    "BSN": {
+        "tuition": "₱30,000 – ₱32,000 per semester",
+        "focus": "Patient care, clinical practice, health assessment, community health, and healthcare services.",
+        "careers": "Registered Nurse\nHospital Nurse\nCommunity Health Nurse\nSchool Nurse\nClinical Nurse",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%, depending on eligibility and current scholarship offers."
+    },
+
+    "BSML": {
+        "tuition": "₱30,000 – ₱32,000 per semester",
+        "focus": "Laboratory testing, specimen analysis, diagnostic procedures, and medical laboratory techniques.",
+        "careers": "Medical Laboratory Scientist\nClinical Laboratory Staff\nLaboratory Assistant\nResearch Laboratory Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSPhar": {
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "focus": "Pharmaceutical sciences, medication management, drug information, and patient care.",
+        "careers": "Pharmacist\nCommunity Pharmacist\nHospital Pharmacist\nPharmaceutical Industry Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSPT": {
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "focus": "Physical rehabilitation, movement assessment, therapeutic exercises, and patient care.",
+        "careers": "Physical Therapist\nRehabilitation Staff\nSports Rehabilitation Staff\nClinical Physical Therapy Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSPsych": {
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "focus": "Human behavior, mental processes, psychological assessment, and research.",
+        "careers": "Human Resources Staff\nRecruitment Staff\nGuidance Staff\nResearch Assistant\nBehavioral Science Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSIT": {
+        "tuition": "₱31,000 – ₱32,000 per semester",
+        "focus": "Programming, software development, databases, networking, digital solutions, and IT infrastructure.",
+        "careers": "Software Developer\nWeb Developer\nMobile Application Developer\nIT Support Specialist\nSystems Analyst\nDatabase Administrator\nNetwork Administrator",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%. HK Scholarship opportunities may also be available depending on eligibility and current terms."
+    },
+
+    "BSCE": {
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "focus": "Structural design, construction, transportation, geotechnical engineering, and infrastructure.",
+        "careers": "Civil Engineer\nStructural Engineer\nConstruction Engineer\nProject Engineer\nSite Engineer",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSEE": {
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "focus": "Electrical systems, power generation, electrical design, control systems, and installations.",
+        "careers": "Electrical Engineer\nPower Systems Engineer\nElectrical Design Engineer\nMaintenance Engineer",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSArch": {
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "focus": "Architectural design, planning, drafting, CAD, building systems, and functional spaces.",
+        "careers": "Architect\nArchitectural Designer\nCAD Specialist\nArchitectural Draftsperson\nDesign Assistant",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSCpE": {
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "focus": "Hardware, software, embedded systems, computer technologies, and electronics.",
+        "careers": "Computer Engineer\nEmbedded Systems Engineer\nHardware Engineer\nSystems Engineer\nNetwork Engineer",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSECE": {
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "focus": "Electronic systems, telecommunications, automation, and communication technologies.",
+        "careers": "Electronics Engineer\nTelecommunications Engineer\nNetwork Engineer\nAutomation Engineer",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSA": {
+        "tuition": "₱25,000 – ₱29,000 per semester",
+        "focus": "Accounting, auditing, taxation, financial reporting, and financial management.",
+        "careers": "Accountant\nAuditor\nTax Associate\nFinancial Analyst\nAccounting Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSMA": {
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "focus": "Management accounting, financial analysis, business operations, and accounting information systems.",
+        "careers": "Management Accounting Staff\nAccounting Associate\nFinancial Analyst\nBudget Analyst\nBusiness Analyst",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSBA": {
+        "tuition": "₱23,000 – ₱26,000 per semester",
+        "focus": "Business operations, management, marketing, finance, human resources, and entrepreneurship.",
+        "careers": "Business Analyst\nMarketing Staff\nHuman Resources Staff\nSales Executive\nEntrepreneur",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSHM": {
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "focus": "Hotel operations, food and beverage services, hospitality management, and events.",
+        "careers": "Hotel Staff\nFront Office Staff\nFood and Beverage Staff\nEvents Coordinator\nGuest Relations Officer",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSTM": {
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "focus": "Tourism operations, travel services, tour planning, destination management, and customer service.",
+        "careers": "Travel Agent\nTour Coordinator\nTourism Officer\nTour Guide\nAirline Ground Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSCRIM": {
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "focus": "Crime, criminal behavior, law enforcement, investigation, public safety, and criminal justice.",
+        "careers": "Law Enforcement Officer\nPolice Officer\nCorrectional Officer\nCrime Analyst\nInvestigation Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSED": {
+        "tuition": "₱20,000 – ₱24,000 per semester",
+        "focus": "Teaching, educational theory, classroom management, curriculum development, and assessment.",
+        "careers": "Elementary School Teacher\nSecondary School Teacher\nTeaching Assistant\nEducation Coordinator\nTutor",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%. Special scholarship offers may apply depending on eligibility."
+    },
+
+    "BAPA": {
+        "tuition": "₱20,000 – ₱24,000 per semester",
+        "focus": "Government, politics, public policy, political institutions, and civic affairs.",
+        "careers": "Government Staff\nPolitical Research Assistant\nPublic Administration Staff\nLegislative Staff\nPolicy Researcher",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BACOM": {
+        "tuition": "₱20,000 – ₱24,000 per semester",
+        "focus": "Media, broadcasting, digital content, public relations, journalism, and communication.",
+        "careers": "Content Creator\nWriter\nPublic Relations Staff\nSocial Media Specialist\nMedia Staff",
+        "scholarship": "Possible scholarship discounts include 25%, 50%, and 75%."
+    },
+
+    "BSCS": {
+        "tuition": "Check current university rate",
+        "focus": "Programming, algorithms, software development, databases, mathematics, and computer systems.",
+        "careers": "Software Developer\nProgrammer\nSystems Analyst\nData Analyst\nSoftware Engineer",
+        "scholarship": "Scholarship availability depends on eligibility and current scholarship offers."
+    }
+}
+
+
+def get_course_info(code):
+
+    return COURSE_INFO.get(
+        code,
+        {
+            "tuition": "Check current university rate",
+            "focus": "Program-specific academic and professional training.",
+            "careers": "Career opportunities depend on specialization.",
+            "scholarship": "Scholarship availability depends on eligibility and current scholarship offers."
+        }
+    )
+
+
+# =========================================================
+# SHOW COURSE DETAILS
+# =========================================================
+
+def show_course_details(code, name, features):
+
+    info = get_course_info(code)
+
+    win = tk.Toplevel(root)
+
+    win.title(
+        code + " - Complete Course Information"
+    )
+
+    win.geometry(
+        "760x680"
+    )
+
+    win.minsize(
+        650,
+        550
+    )
+
+    win.config(
+        bg="#F1F5F9"
+    )
+
+    # HEADER
+    header = tk.Frame(
+        win,
+        bg="#0F172A",
+        height=100
+    )
+
+    header.pack(
+        fill="x"
+    )
+
+    header.pack_propagate(False)
+
+    tk.Label(
+        header,
+        text=code,
+        font=("Segoe UI", 23, "bold"),
+        bg="#0F172A",
+        fg="#34D399"
+    ).pack(
+        pady=(15, 0)
+    )
+
+    tk.Label(
+        header,
+        text=name,
+        font=("Segoe UI", 12),
+        bg="#0F172A",
+        fg="#E2E8F0"
+    ).pack()
+
+    # CONTENT
+    outer = tk.Frame(
+        win,
+        bg="#F1F5F9"
+    )
+
+    outer.pack(
+        fill="both",
+        expand=True,
+        padx=15,
+        pady=15
+    )
+
+    canvas = tk.Canvas(
+        outer,
+        bg="#F1F5F9",
+        highlightthickness=0
+    )
+
+    scrollbar = tk.Scrollbar(
+        outer,
+        orient="vertical",
+        command=canvas.yview
+    )
+
+    content = tk.Frame(
+        canvas,
+        bg="white",
+        padx=25,
+        pady=20
+    )
+
+    canvas_window = canvas.create_window(
+        (0, 0),
+        window=content,
+        anchor="nw"
+    )
+
+    def update_scroll(event=None):
+        canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+
+    def update_width(event):
+        canvas.itemconfigure(
+            canvas_window,
+            width=event.width
+        )
+
+    content.bind(
+        "<Configure>",
+        update_scroll
+    )
+
+    canvas.bind(
+        "<Configure>",
+        update_width
+    )
+
+    canvas.configure(
+        yscrollcommand=scrollbar.set
+    )
+
+    canvas.pack(
+        side="left",
+        fill="both",
+        expand=True
+    )
+
+    scrollbar.pack(
+        side="right",
+        fill="y"
+    )
+
+    def section(title, text):
+
+        tk.Label(
+            content,
+            text=title,
+            font=("Segoe UI", 12, "bold"),
+            bg="white",
+            fg="#0F172A",
+            anchor="w"
+        ).pack(
+            fill="x",
+            pady=(12, 5)
+        )
+
+        tk.Label(
+            content,
+            text=text,
+            font=("Segoe UI", 10),
+            bg="white",
+            fg="#475569",
+            anchor="w",
+            justify="left",
+            wraplength=650
+        ).pack(
+            fill="x",
+            anchor="w"
+        )
+
+    section(
+        "LOCATION",
+        "Arellano Street, Downtown District, "
+        "Dagupan City, Pangasinan"
+    )
+
+    section(
+        "PROGRAM FOCUS",
+        info["focus"]
+    )
+
+    section(
+        "ADMISSION REQUIREMENTS",
+        "Applicants must comply with the current admission "
+        "and enrollment requirements of PHINMA University of Pangasinan."
+    )
+
+    section(
+        "TUITION AND FEES",
+        info["tuition"]
+    )
+
+    section(
+        "SCHOLARSHIPS",
+        info["scholarship"]
+    )
+
+    section(
+        "CAREER OPPORTUNITIES",
+        info["careers"]
+    )
+
+    section(
+        "COURSE DETAILS",
+        features
+    )
+
+
+# =========================================================
+# COURSE CARD
+# =========================================================
+
+def create_course_card(parent, code, name, features):
+
+    info = get_course_info(code)
+
+    card = tk.Frame(
+        parent,
+        bg="white",
+        bd=1,
+        relief="solid",
+        height=115,
+        padx=10,
+        pady=8,
+        cursor="hand2"
+    )
+
+    card.grid_propagate(False)
+
+    tk.Label(
+        card,
+        text=code,
+        font=("Segoe UI", 11, "bold"),
+        bg="white",
+        fg="#059669",
+        cursor="hand2"
+    ).pack(
+        anchor="w"
+    )
+
+    tk.Label(
+        card,
+        text=name,
+        font=("Segoe UI", 9, "bold"),
+        bg="white",
+        fg="#0F172A",
+        wraplength=220,
+        justify="left",
+        cursor="hand2"
+    ).pack(
+        anchor="w",
+        pady=(4, 3)
+    )
+
+    tk.Label(
+        card,
+        text=info["tuition"],
+        font=("Segoe UI", 8),
+        bg="white",
+        fg="#64748B",
+        wraplength=220,
+        justify="left",
+        cursor="hand2"
+    ).pack(
+        anchor="w"
+    )
+
+    def open_course(event=None):
+
+        show_course_details(
+            code,
+            name,
+            features
+        )
+
+    def hover_on(event=None):
+
+        card.config(
+            bg="#ECFDF5"
+        )
+
+        for child in card.winfo_children():
+            child.config(
+                bg="#ECFDF5"
+            )
+
+    def hover_off(event=None):
+
+        card.config(
+            bg="white"
+        )
+
+        for child in card.winfo_children():
+            child.config(
+                bg="white"
+            )
+
+    card.bind(
+        "<Button-1>",
+        open_course
+    )
+
+    card.bind(
+        "<Enter>",
+        hover_on
+    )
+
+    card.bind(
+        "<Leave>",
+        hover_off
+    )
+
+    for child in card.winfo_children():
+
+        child.bind(
+            "<Button-1>",
+            open_course
+        )
+
+        child.bind(
+            "<Enter>",
+            hover_on
+        )
+
+        child.bind(
+            "<Leave>",
+            hover_off
+        )
+
+    return card
+
+
+# =========================================================
+# SHOW ALL COURSES
+# =========================================================
+
+def show_all_courses():
+
+    for widget in course_list_frame.winfo_children():
+        widget.destroy()
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT course_code, course_name, features
+        FROM courses
+        ORDER BY id
+    """)
+
+    courses = cur.fetchall()
+
+    conn.close()
+
+    result_title.config(
+        text=f"Available Courses ({len(courses)})"
+    )
+
+    for col in range(4):
+
+        course_list_frame.grid_columnconfigure(
+            col,
+            weight=1,
+            uniform="courses"
+        )
+
+    for i, course in enumerate(courses):
+
+        code, name, features = course
+
+        row = i // 4
+        col = i % 4
+
+        card = create_course_card(
+            course_list_frame,
+            code,
+            name,
+            features
+        )
+
+        card.grid(
+            row=row,
+            column=col,
+            padx=6,
+            pady=6,
+            sticky="nsew"
+        )
+
+
+# =========================================================
+# SEARCH / RECOMMEND
+# =========================================================
+
+def suggest_course():
+
+    characteristics = characteristics_entry.get().lower().strip()
+    skills = skills_entry.get().lower().strip()
+    interests = interests_entry.get().lower().strip()
+
+    combined = (
+        characteristics + " " +
+        skills + " " +
+        interests
+    )
+
+    if not combined.strip():
+
+        messagebox.showwarning(
+            "Missing Information",
+            "Please enter your characteristics, skills, or interests."
+        )
+
+        return
+
+    keywords = combined.replace(",", " ").split()
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT course_code, course_name, skills, features
+        FROM courses
+        ORDER BY id
+    """)
+
+    courses = cur.fetchall()
+
+    conn.close()
+
+    results = []
+
+    for code, name, course_skills, features in courses:
+
+        searchable = (
+            code + " " +
+            name + " " +
+            course_skills + " " +
+            features
+        ).lower()
+
+        score = 0
+
+        for keyword in keywords:
+
+            if keyword in searchable:
+                score += 1
+
+        if score > 0:
+
+            results.append(
+                (
+                    score,
+                    code,
+                    name,
+                    features
+                )
+            )
+
+    results.sort(
+        reverse=True,
+        key=lambda x: x[0]
+    )
+
+    for widget in course_list_frame.winfo_children():
+        widget.destroy()
+
+    if not results:
+
+        result_title.config(
+            text="No Matching Course"
+        )
+
+        tk.Label(
+            course_list_frame,
+            text=(
+                "No matching course found.\n\n"
+                "Try adding more skills or interests."
+            ),
+            font=("Segoe UI", 11),
+            bg="#F8FAFC",
+            fg="#64748B",
+            pady=60
+        ).grid(
+            row=0,
+            column=0,
+            columnspan=4,
+            sticky="nsew"
+        )
+
+        return
+
+    result_title.config(
+        text=f"Recommended Courses ({len(results)})"
+    )
+
+    for col in range(4):
+
+        course_list_frame.grid_columnconfigure(
+            col,
+            weight=1,
+            uniform="courses"
+        )
+
+    for i, result in enumerate(results):
+
+        score, code, name, features = result
+
+        row = i // 4
+        col = i % 4
+
+        card = create_course_card(
+            course_list_frame,
+            code,
+            name,
+            features
+        )
+
+        card.grid(
+            row=row,
+            column=col,
+            padx=6,
+            pady=6,
+            sticky="nsew"
+        )
+
+
+# =========================================================
+# CLEAR
+# =========================================================
+
+def clear_inputs():
+
+    name_entry.delete(
+        0,
+        tk.END
+    )
+
+    characteristics_entry.delete(
+        0,
+        tk.END
+    )
+
+    skills_entry.delete(
+        0,
+        tk.END
+    )
+
+    interests_entry.delete(
+        0,
+        tk.END
+    )
+
+    name_entry.focus()
+
+    show_all_courses()
+
+
+# =========================================================
+# PHINMA INFO
+# =========================================================
+
+def show_phinma_info():
+
+    win = tk.Toplevel(root)
+
+    win.title(
+        "PHINMA University of Pangasinan"
+    )
+
+    win.geometry(
+        "700x600"
+    )
+
+    win.config(
+        bg="#F1F5F9"
+    )
+
+    tk.Label(
+        win,
+        text="PHINMA University of Pangasinan",
+        font=("Segoe UI", 20, "bold"),
+        bg="#0F172A",
+        fg="white",
+        pady=18
+    ).pack(
+        fill="x"
+    )
+
+    text = """
+LOCATION
+
+Arellano Street, Downtown District,
+Dagupan City, Pangasinan
+
+
+SCHOLARSHIPS
+
+Qualified students may receive scholarship discounts
+depending on the available scholarship offer.
+
+Possible discount levels include:
+
+• 25%
+• 50%
+• 75%
+
+Scholarship availability, eligibility, and coverage
+may vary by program and academic year.
+
+
+IMPORTANT
+
+Tuition fees, admission requirements, and scholarship
+coverage may change. Students should confirm the
+latest information with the university before enrollment.
+"""
+
+    tk.Label(
+        win,
+        text=text,
+        font=("Segoe UI", 11),
+        bg="white",
+        fg="#334155",
+        justify="left",
+        anchor="nw",
+        padx=30,
+        pady=30
+    ).pack(
+        fill="both",
+        expand=True,
+        padx=15,
+        pady=15
+    )
+
+
+# =========================================================
+# MAIN WINDOW
+# =========================================================
+
+create_table()
+
+root = tk.Tk()
+
+root.title(
+    "MyCourse - Course Recommendation System"
+)
+
+root.geometry(
+    "1150x720"
+)
+
+root.minsize(
+    1000,
+    650
+)
+
+root.config(
+    bg="#F1F5F9"
+)
+
+
+# =========================================================
+# HEADER
+# =========================================================
+
+header = tk.Frame(
+    root,
+    bg="#0F172A",
+    height=85
+)
+
+header.pack(
+    fill="x"
+)
+
+header.pack_propagate(False)
+
+
+tk.Label(
+    header,
+    text="MyCourse",
+    font=("Segoe UI", 25, "bold"),
+    bg="#0F172A",
+    fg="#34D399"
+).pack(
+    side="left",
+    padx=25
+)
+
+
+tk.Button(
+    header,
+    text="PHINMA UPang Info",
+    font=("Segoe UI", 9, "bold"),
+    bg="#10B981",
+    fg="white",
+    activebackground="#059669",
+    activeforeground="white",
+    relief="flat",
+    cursor="hand2",
+    command=show_phinma_info
+).pack(
+    side="right",
+    padx=20
+)
+
+
+# =========================================================
+# MAIN CONTAINER
+# =========================================================
+
+main = tk.Frame(
+    root,
+    bg="#F1F5F9"
+)
+
+main.pack(
+    fill="both",
+    expand=True,
+    padx=15,
+    pady=15
+)
+
+main.grid_columnconfigure(
+    0,
+    minsize=300,
+    weight=0
+)
+
+main.grid_columnconfigure(
+    1,
+    weight=1
+)
+
+main.grid_rowconfigure(
+    0,
+    weight=1
+)
+
+
+# =========================================================
+# LEFT SIDE
+# =========================================================
+
+left = tk.Frame(
+    main,
+    bg="white",
+    bd=1,
+    relief="solid",
+    padx=20,
+    pady=20
+)
+
+left.grid(
+    row=0,
+    column=0,
+    sticky="nsew",
+    padx=(0, 10)
+)
+
+
+tk.Label(
+    left,
+    text="Tell us about you",
+    font=("Segoe UI", 17, "bold"),
+    bg="white",
+    fg="#0F172A"
+).pack(
+    anchor="w"
+)
+
+
+tk.Label(
+    left,
+    text="Enter your information to find suitable courses.",
+    font=("Segoe UI", 9),
+    bg="white",
+    fg="#64748B",
+    wraplength=250,
+    justify="left"
+).pack(
+    anchor="w",
+    pady=(4, 18)
+)
+
+
+def add_label(text):
+
+    tk.Label(
+        left,
+        text=text,
+        font=("Segoe UI", 9, "bold"),
+        bg="white",
+        fg="#334155"
+    ).pack(
+        anchor="w",
+        pady=(8, 4)
+    )
+
+
+def add_entry():
+
+    entry = tk.Entry(
+        left,
+        font=("Segoe UI", 10),
+        bg="#F8FAFC",
+        fg="#0F172A",
+        relief="solid",
+        bd=1
+    )
+
+    entry.pack(
+        fill="x",
+        ipady=7
+    )
+
+    return entry
+
+
+add_label("Name")
+name_entry = add_entry()
+
+add_label("Characteristics")
+characteristics_entry = add_entry()
+
+add_label("Skills")
+skills_entry = add_entry()
+
+add_label("Interests")
+interests_entry = add_entry()
+
+
+tk.Button(
+    left,
+    text="Find My Course",
+    font=("Segoe UI", 10, "bold"),
+    bg="#10B981",
+    fg="white",
+    activebackground="#059669",
+    relief="flat",
+    cursor="hand2",
+    command=suggest_course
+).pack(
+    fill="x",
+    pady=(25, 8),
+    ipady=8
+)
+
+
+tk.Button(
+    left,
+    text="Show All Courses",
+    font=("Segoe UI", 9, "bold"),
+    bg="#E2E8F0",
+    fg="#334155",
+    relief="flat",
+    cursor="hand2",
+    command=show_all_courses
+).pack(
+    fill="x",
+    pady=3,
+    ipady=7
+)
+
+
+tk.Button(
+    left,
+    text="Clear",
+    font=("Segoe UI", 9),
+    bg="#F1F5F9",
+    fg="#475569",
+    relief="flat",
+    cursor="hand2",
+    command=clear_inputs
+).pack(
+    fill="x",
+    pady=3,
+    ipady=7
+)
+
+
+# =========================================================
+# RIGHT SIDE
+# =========================================================
+
+right = tk.Frame(
+    main,
+    bg="white",
+    bd=1,
+    relief="solid",
+    padx=15,
+    pady=15
+)
+
+right.grid(
+    row=0,
+    column=1,
+    sticky="nsew"
+)
+
+right.grid_rowconfigure(
+    1,
+    weight=1
+)
+
+right.grid_columnconfigure(
+    0,
+    weight=1
+)
+
+
+# =========================================================
+# RESULT HEADER
+# =========================================================
+
+result_title = tk.Label(
+    right,
+    text="Available Courses",
+    font=("Segoe UI", 17, "bold"),
+    bg="white",
+    fg="#0F172A"
+)
+
+result_title.grid(
+    row=0,
+    column=0,
+    sticky="w",
+    pady=(0, 10)
+)
+
+
+# =========================================================
+# COURSE SCROLL AREA
+# =========================================================
+
+course_outer = tk.Frame(
+    right,
+    bg="#F8FAFC"
+)
+
+course_outer.grid(
+    row=1,
+    column=0,
+    sticky="nsew"
+)
+
+course_outer.grid_rowconfigure(
+    0,
+    weight=1
+)
+
+course_outer.grid_columnconfigure(
+    0,
+    weight=1
+)
+
+
+course_canvas = tk.Canvas(
+    course_outer,
+    bg="#F8FAFC",
+    highlightthickness=0
+)
+
+course_scrollbar = tk.Scrollbar(
+    course_outer,
+    orient="vertical",
+    command=course_canvas.yview
+)
+
+course_list_frame = tk.Frame(
+    course_canvas,
+    bg="#F8FAFC"
+)
+
+course_window = course_canvas.create_window(
+    (0, 0),
+    window=course_list_frame,
+    anchor="nw"
+)
+
+
+def update_course_scroll(event=None):
+
+    course_canvas.configure(
+        scrollregion=course_canvas.bbox("all")
+    )
+
+
+def resize_course_frame(event):
+
+    course_canvas.itemconfigure(
+        course_window,
+        width=event.width
+    )
+
+
+course_list_frame.bind(
+    "<Configure>",
+    update_course_scroll
+)
+
+course_canvas.bind(
+    "<Configure>",
+    resize_course_frame
+)
+
+course_canvas.configure(
+    yscrollcommand=course_scrollbar.set
+)
+
+course_canvas.grid(
+    row=0,
+    column=0,
+    sticky="nsew"
+)
+
+course_scrollbar.grid(
+    row=0,
+    column=1,
+    sticky="ns"
+)
+
+
+# =========================================================
+# START PROGRAM
+# =========================================================
+
+show_all_courses()
+
+name_entry.focus()
+
+root.mainloop()
