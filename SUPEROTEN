@@ -1,0 +1,1760 @@
+import sqlite3
+import tkinter as tk
+from tkinter import messagebox
+
+
+# =========================================================
+# DATABASE
+# =========================================================
+
+BASE_DIR = __import__("os").path.dirname(
+    __import__("os").path.abspath(__file__)
+)
+
+DB_PATH = __import__("os").path.join(
+    BASE_DIR,
+    "mycourse.db"
+)
+
+
+def get_connection():
+    return sqlite3.connect(DB_PATH)
+
+
+def create_table():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS courses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            course_code TEXT NOT NULL UNIQUE,
+            course_name TEXT NOT NULL,
+            skills TEXT NOT NULL,
+            features TEXT NOT NULL
+        )
+    """)
+
+    # IMPORTANT:
+    # Hindi nito dini-delete ang existing database.
+    # Nagdadagdag lang ito ng courses na wala pa.
+
+    additional_courses = [
+
+        (
+            "BSPsych",
+            "BS Psychology",
+            "Human Behavior, Communication, Research, Psychology",
+            "Studies human behavior, mental processes, psychological assessment, research, and applications of psychology."
+        ),
+
+        (
+            "BACOM",
+            "BA Communication",
+            "Communication, Writing, Media, Public Speaking",
+            "Develops communication skills for media, broadcasting, digital content, public relations, journalism, and communication-related fields."
+        )
+    ]
+
+    cur.executemany("""
+        INSERT OR IGNORE INTO courses
+        (course_code, course_name, skills, features)
+        VALUES (?, ?, ?, ?)
+    """, additional_courses)
+
+    conn.commit()
+    conn.close()
+
+
+# =========================================================
+# PHINMA COURSE INFORMATION
+# =========================================================
+
+COURSE_INFO = {
+
+    "BSN": {
+        "official_name": "BS Nursing",
+        "focus":
+            "Prepares students for patient care, clinical practice, "
+            "health assessment, community health, and healthcare services.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱30,000 – ₱32,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%. "
+            "Scholarship availability and coverage may vary.",
+        "careers":
+            "• Registered Nurse\n"
+            "• Hospital Nurse\n"
+            "• Community Health Nurse\n"
+            "• School Nurse\n"
+            "• Clinical Nurse\n"
+            "• Public Health Nurse"
+    },
+
+    "BSML": {
+        "official_name": "BS Medical Laboratory Science",
+        "focus":
+            "Prepares students in laboratory testing, specimen analysis, "
+            "diagnostic procedures, and laboratory techniques used in healthcare.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱30,000 – ₱32,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Medical Laboratory Scientist\n"
+            "• Clinical Laboratory Staff\n"
+            "• Laboratory Assistant\n"
+            "• Research Laboratory Staff\n"
+            "• Diagnostic Laboratory Staff"
+    },
+
+    "BSPhar": {
+        "official_name": "BS Pharmacy",
+        "focus":
+            "Focuses on pharmaceutical sciences, medication management, "
+            "drug information, patient care, and proper use of medicines.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Pharmacist\n"
+            "• Community Pharmacist\n"
+            "• Hospital Pharmacist\n"
+            "• Pharmaceutical Industry Staff\n"
+            "• Regulatory Affairs Staff\n"
+            "• Drug Information Specialist"
+    },
+
+    "BSPT": {
+        "official_name": "BS Physical Therapy",
+        "focus":
+            "Prepares students in physical rehabilitation, movement assessment, "
+            "therapeutic exercises, and patient care.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Physical Therapist\n"
+            "• Rehabilitation Staff\n"
+            "• Sports Rehabilitation Staff\n"
+            "• Community Rehabilitation Worker\n"
+            "• Clinical Physical Therapy Staff"
+    },
+
+    "BSPsych": {
+        "official_name": "BS Psychology",
+        "focus":
+            "Studies human behavior, mental processes, psychological assessment, "
+            "research, and applications of psychology.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Human Resources Staff\n"
+            "• Recruitment Staff\n"
+            "• Guidance Staff\n"
+            "• Research Assistant\n"
+            "• Behavioral Science Staff\n"
+            "• Psychological Services Assistant"
+    },
+
+    "BSIT": {
+        "official_name": "BS Information Technology",
+        "focus":
+            "Prepares students for careers in programming, mobile application "
+            "development, digital solutions, database management, networking, "
+            "and IT infrastructure.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱31,000 – ₱32,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts depending "
+            "on the available scholarship offer. Possible discount levels "
+            "include 25%, 50%, and 75%. HK Scholarship opportunities may "
+            "also be available subject to eligibility and current terms.",
+        "careers":
+            "• Software Developer\n"
+            "• Web Developer\n"
+            "• Mobile Application Developer\n"
+            "• IT Support Specialist\n"
+            "• Systems Analyst\n"
+            "• Database Administrator\n"
+            "• Network Administrator\n"
+            "• IT Infrastructure Specialist"
+    },
+
+    "BSCE": {
+        "official_name": "BS Civil Engineering",
+        "focus":
+            "Focuses on structural design, construction, transportation, "
+            "geotechnical engineering, water resources, and infrastructure development.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Civil Engineer\n"
+            "• Structural Engineer\n"
+            "• Construction Engineer\n"
+            "• Project Engineer\n"
+            "• Site Engineer\n"
+            "• Quantity Surveyor"
+    },
+
+    "BSEE": {
+        "official_name": "BS Electrical Engineering",
+        "focus":
+            "Focuses on electrical systems, power generation, electrical design, "
+            "control systems, and electrical installations.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Electrical Engineer\n"
+            "• Power Systems Engineer\n"
+            "• Electrical Design Engineer\n"
+            "• Maintenance Engineer\n"
+            "• Project Engineer\n"
+            "• Electrical Inspector"
+    },
+
+    "BSArch": {
+        "official_name": "BS Architecture",
+        "focus":
+            "Develops skills in architectural design, planning, drafting, "
+            "building systems, and development of functional spaces.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Architect\n"
+            "• Architectural Designer\n"
+            "• CAD Specialist\n"
+            "• Architectural Draftsperson\n"
+            "• Design Assistant\n"
+            "• Project Coordinator"
+    },
+
+    "BSCpE": {
+        "official_name": "BS Computer Engineering",
+        "focus":
+            "Combines computer science and electronics engineering, focusing "
+            "on hardware, software, embedded systems, and computer technologies.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Computer Engineer\n"
+            "• Embedded Systems Engineer\n"
+            "• Hardware Engineer\n"
+            "• Systems Engineer\n"
+            "• Network Engineer\n"
+            "• Software Engineer"
+    },
+
+    "BSECE": {
+        "official_name": "BS Electronics Engineering",
+        "focus":
+            "Focuses on electronic systems, communications, automation, "
+            "telecommunications, and electronic device development.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱28,000 – ₱31,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Electronics Engineer\n"
+            "• Telecommunications Engineer\n"
+            "• Network Engineer\n"
+            "• Automation Engineer\n"
+            "• Electronics Design Engineer\n"
+            "• Systems Engineer"
+    },
+
+    "BSA": {
+        "official_name": "BS Accountancy",
+        "focus":
+            "Develops skills in accounting, auditing, taxation, financial "
+            "reporting, and financial management.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱25,000 – ₱29,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Accountant\n"
+            "• Auditor\n"
+            "• Tax Associate\n"
+            "• Financial Analyst\n"
+            "• Accounting Staff\n"
+            "• Internal Audit Staff"
+    },
+
+    "BSMA": {
+        "official_name": "BS Management Accounting / Accounting Information System",
+        "focus":
+            "Combines accounting principles with management, financial analysis, "
+            "and information systems used in business operations.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Management Accounting Staff\n"
+            "• Accounting Information System Specialist\n"
+            "• Financial Analyst\n"
+            "• Accounting Associate\n"
+            "• Budget Analyst\n"
+            "• Business Analyst"
+    },
+
+    "BSBA": {
+        "official_name": "BS Business Administration",
+        "focus":
+            "Prepares students for business operations, management, marketing, "
+            "finance, human resources, and entrepreneurship.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱23,000 – ₱26,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Business Analyst\n"
+            "• Marketing Staff\n"
+            "• Human Resources Staff\n"
+            "• Sales Executive\n"
+            "• Financial Services Staff\n"
+            "• Entrepreneur"
+    },
+
+    "BSHM": {
+        "official_name": "BS Hospitality Management",
+        "focus":
+            "Prepares students for hotel operations, food and beverage services, "
+            "hospitality management, events, and customer service.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Hotel Staff\n"
+            "• Front Office Staff\n"
+            "• Food and Beverage Staff\n"
+            "• Events Coordinator\n"
+            "• Guest Relations Officer\n"
+            "• Hospitality Supervisor"
+    },
+
+    "BSTM": {
+        "official_name": "BS Tourism Management",
+        "focus":
+            "Develops skills in tourism operations, travel services, tour planning, "
+            "destination management, and customer service.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Travel Agent\n"
+            "• Tour Coordinator\n"
+            "• Tourism Officer\n"
+            "• Tour Guide\n"
+            "• Airline Ground Staff\n"
+            "• Events Coordinator"
+    },
+
+    "BSCRIM": {
+        "official_name": "BS Criminology",
+        "focus":
+            "Studies crime, criminal behavior, law enforcement, public safety, "
+            "criminal justice, and investigation.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱24,000 – ₱28,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Law Enforcement Officer\n"
+            "• Police Officer\n"
+            "• Correctional Officer\n"
+            "• Crime Analyst\n"
+            "• Investigation Staff\n"
+            "• Security Officer"
+    },
+
+    "BSED": {
+        "official_name": "BS Education",
+        "focus":
+            "Prepares students for teaching careers through educational theory, "
+            "classroom management, curriculum development, assessment, and teaching practice.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱20,000 – ₱24,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%. "
+            "Some qualified students may have access to special scholarship offers.",
+        "careers":
+            "• Elementary School Teacher\n"
+            "• Secondary School Teacher\n"
+            "• Teaching Assistant\n"
+            "• Education Coordinator\n"
+            "• Tutor\n"
+            "• School Staff"
+    },
+
+    "BAPA": {
+        "official_name": "BA Political Science",
+        "focus":
+            "Studies government, politics, public policy, political institutions, "
+            "international relations, and civic affairs.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱20,000 – ₱24,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Government Staff\n"
+            "• Political Research Assistant\n"
+            "• Public Administration Staff\n"
+            "• Legislative Staff\n"
+            "• Policy Researcher\n"
+            "• Community Development Staff"
+    },
+
+    "BACOM": {
+        "official_name": "BA Communication",
+        "focus":
+            "Develops communication skills for media, broadcasting, digital content, "
+            "public relations, journalism, and communication-related fields.",
+        "admission":
+            "Applicants must comply with the current admission and enrollment requirements of PHINMA University of Pangasinan.",
+        "tuition": "₱20,000 – ₱24,000 per semester",
+        "scholarship":
+            "Qualified students may receive scholarship discounts. "
+            "Possible discount levels include 25%, 50%, and 75%.",
+        "careers":
+            "• Content Creator\n"
+            "• Writer\n"
+            "• Public Relations Staff\n"
+            "• Social Media Specialist\n"
+            "• Media Staff\n"
+            "• Communications Assistant"
+    }
+}
+
+
+# =========================================================
+# COURSE INFORMATION HELPERS
+# =========================================================
+
+def get_course_info(code):
+
+    return COURSE_INFO.get(
+        code,
+        {
+            "official_name": "",
+            "focus":
+                "Information for this program is based on the course data stored in the database.",
+            "admission":
+                "Applicants must comply with the current admission and enrollment requirements.",
+            "tuition":
+                "Tuition information currently unavailable.",
+            "scholarship":
+                "Scholarship availability depends on current eligibility and scholarship terms.",
+            "careers":
+                "• Career opportunities depend on the student's specialization."
+        }
+    )
+
+
+# =========================================================
+# COURSE DETAILS WINDOW
+# =========================================================
+
+def show_course_details(code, name, features):
+
+    detail_win = tk.Toplevel(root)
+
+    detail_win.title(
+        f"{code} - Course Information"
+    )
+
+    detail_win.geometry(
+        "760x680"
+    )
+
+    detail_win.minsize(
+        650,
+        580
+    )
+
+    detail_win.config(
+        bg="#F8FAFC"
+    )
+
+    detail_win.grab_set()
+
+    info = get_course_info(code)
+
+    # -----------------------------------------------------
+    # HEADER
+    # -----------------------------------------------------
+
+    header = tk.Frame(
+        detail_win,
+        bg="#0F172A",
+        height=95
+    )
+
+    header.pack(
+        fill="x"
+    )
+
+    header.pack_propagate(False)
+
+    tk.Label(
+        header,
+        text=code,
+        font=("Segoe UI", 22, "bold"),
+        bg="#0F172A",
+        fg="#34D399"
+    ).pack(
+        pady=(15, 0)
+    )
+
+    tk.Label(
+        header,
+        text=info["official_name"] if info["official_name"] else name,
+        font=("Segoe UI", 12),
+        bg="#0F172A",
+        fg="#E2E8F0"
+    ).pack(
+        pady=(2, 0)
+    )
+
+    # -----------------------------------------------------
+    # SCROLL AREA
+    # -----------------------------------------------------
+
+    outer = tk.Frame(
+        detail_win,
+        bg="#F8FAFC"
+    )
+
+    outer.pack(
+        fill="both",
+        expand=True,
+        padx=15,
+        pady=15
+    )
+
+    canvas = tk.Canvas(
+        outer,
+        bg="#F8FAFC",
+        highlightthickness=0
+    )
+
+    scrollbar = tk.Scrollbar(
+        outer,
+        orient="vertical",
+        command=canvas.yview
+    )
+
+    content = tk.Frame(
+        canvas,
+        bg="#F8FAFC"
+    )
+
+    window_id = canvas.create_window(
+        (0, 0),
+        window=content,
+        anchor="nw"
+    )
+
+    def update_scroll(event=None):
+
+        canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+
+    def update_width(event):
+
+        canvas.itemconfigure(
+            window_id,
+            width=event.width
+        )
+
+    content.bind(
+        "<Configure>",
+        update_scroll
+    )
+
+    canvas.bind(
+        "<Configure>",
+        update_width
+    )
+
+    canvas.configure(
+        yscrollcommand=scrollbar.set
+    )
+
+    canvas.pack(
+        side="left",
+        fill="both",
+        expand=True
+    )
+
+    scrollbar.pack(
+        side="right",
+        fill="y"
+    )
+
+    # -----------------------------------------------------
+    # INFORMATION CARD
+    # -----------------------------------------------------
+
+    card = tk.Frame(
+        content,
+        bg="white",
+        padx=25,
+        pady=25
+    )
+
+    card.pack(
+        fill="both",
+        expand=True
+    )
+
+    def add_section(title, text):
+
+        tk.Label(
+            card,
+            text=title,
+            font=("Segoe UI", 12, "bold"),
+            bg="white",
+            fg="#0F172A",
+            anchor="w"
+        ).pack(
+            fill="x",
+            pady=(10, 4)
+        )
+
+        tk.Label(
+            card,
+            text=text,
+            font=("Segoe UI", 10),
+            bg="white",
+            fg="#334155",
+            justify="left",
+            anchor="w",
+            wraplength=650
+        ).pack(
+            fill="x",
+            anchor="w",
+            pady=(0, 8)
+        )
+
+    add_section(
+        "LOCATION",
+        "Arellano Street, Downtown District, "
+        "Dagupan City, Pangasinan"
+    )
+
+    add_section(
+        "PROGRAM FOCUS",
+        info["focus"]
+    )
+
+    add_section(
+        "ADMISSION REQUIREMENTS",
+        info["admission"]
+    )
+
+    add_section(
+        "TUITION AND FEES",
+        info["tuition"]
+    )
+
+    add_section(
+        "SCHOLARSHIPS",
+        info["scholarship"]
+    )
+
+    add_section(
+        "CAREER OPPORTUNITIES",
+        info["careers"]
+    )
+
+    add_section(
+        "COURSE DETAILS",
+        features
+    )
+
+    # -----------------------------------------------------
+    # MOUSE WHEEL
+    # -----------------------------------------------------
+
+    def mouse_wheel(event):
+
+        canvas.yview_scroll(
+            int(-1 * (event.delta / 120)),
+            "units"
+        )
+
+    canvas.bind_all(
+        "<MouseWheel>",
+        mouse_wheel
+    )
+
+    def close_details():
+
+        canvas.unbind_all(
+            "<MouseWheel>"
+        )
+
+        detail_win.destroy()
+
+    detail_win.protocol(
+        "WM_DELETE_WINDOW",
+        close_details
+    )
+
+
+# =========================================================
+# PHINMA DETAILS
+# =========================================================
+
+def show_phinma_details():
+
+    win = tk.Toplevel(root)
+
+    win.title(
+        "PHINMA University of Pangasinan"
+    )
+
+    win.geometry(
+        "700x600"
+    )
+
+    win.config(
+        bg="#F8FAFC"
+    )
+
+    tk.Label(
+        win,
+        text="PHINMA University of Pangasinan",
+        font=("Segoe UI", 20, "bold"),
+        bg="#0F172A",
+        fg="white",
+        pady=18
+    ).pack(
+        fill="x"
+    )
+
+    outer = tk.Frame(
+        win,
+        bg="#F8FAFC"
+    )
+
+    outer.pack(
+        fill="both",
+        expand=True,
+        padx=15,
+        pady=15
+    )
+
+    canvas = tk.Canvas(
+        outer,
+        bg="#F8FAFC",
+        highlightthickness=0
+    )
+
+    scrollbar = tk.Scrollbar(
+        outer,
+        orient="vertical",
+        command=canvas.yview
+    )
+
+    content = tk.Frame(
+        canvas,
+        bg="white",
+        padx=25,
+        pady=25
+    )
+
+    window_id = canvas.create_window(
+        (0, 0),
+        window=content,
+        anchor="nw"
+    )
+
+    content.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.bind(
+        "<Configure>",
+        lambda e: canvas.itemconfigure(
+            window_id,
+            width=e.width
+        )
+    )
+
+    canvas.configure(
+        yscrollcommand=scrollbar.set
+    )
+
+    canvas.pack(
+        side="left",
+        fill="both",
+        expand=True
+    )
+
+    scrollbar.pack(
+        side="right",
+        fill="y"
+    )
+
+    text = """
+PHINMA UNIVERSITY OF PANGASINAN
+
+Location:
+Arellano Street, Downtown District,
+Dagupan City, Pangasinan
+
+The university offers programs in health sciences,
+information technology, engineering, business,
+hospitality, tourism, criminology, education,
+political science, and communication.
+
+Scholarship Information:
+
+Qualified students may receive scholarship discounts
+depending on the available scholarship offer.
+
+Possible discount levels include:
+
+• 25%
+• 50%
+• 75%
+
+Scholarship availability, eligibility, and coverage
+may vary depending on the program and academic year.
+
+Students should confirm the current tuition fees,
+admission requirements, and scholarship terms with
+the university before enrollment.
+"""
+
+    tk.Label(
+        content,
+        text=text,
+        font=("Segoe UI", 11),
+        bg="white",
+        fg="#334155",
+        justify="left",
+        anchor="w",
+        wraplength=620
+    ).pack(
+        fill="x"
+    )
+
+
+# =========================================================
+# COURSE CARD
+# =========================================================
+
+def create_course_card(parent, code, name, features):
+
+    card = tk.Frame(
+        parent,
+        bg="white",
+        bd=1,
+        relief="solid",
+        padx=10,
+        pady=8,
+        height=115
+    )
+
+    card.grid_propagate(
+        False
+    )
+
+    info = get_course_info(code)
+
+    tk.Label(
+        card,
+        text=code,
+        font=("Segoe UI", 11, "bold"),
+        bg="white",
+        fg="#059669"
+    ).pack(
+        anchor="w"
+    )
+
+    tk.Label(
+        card,
+        text=name,
+        font=("Segoe UI", 9, "bold"),
+        bg="white",
+        fg="#0F172A",
+        wraplength=210,
+        justify="left"
+    ).pack(
+        anchor="w",
+        pady=(4, 2)
+    )
+
+    tk.Label(
+        card,
+        text=info["tuition"],
+        font=("Segoe UI", 8),
+        bg="white",
+        fg="#64748B",
+        wraplength=210,
+        justify="left"
+    ).pack(
+        anchor="w"
+    )
+
+    # -----------------------------------------------------
+    # CLICK EVENT
+    # -----------------------------------------------------
+
+    def open_details(event=None):
+
+        show_course_details(
+            code,
+            name,
+            features
+        )
+
+    # Make the whole card clickable
+    card.bind(
+        "<Button-1>",
+        open_details
+    )
+
+    for widget in card.winfo_children():
+
+        widget.bind(
+            "<Button-1>",
+            open_details
+        )
+
+    # Hover effect
+    def enter(event=None):
+
+        card.config(
+            bg="#ECFDF5"
+        )
+
+        for widget in card.winfo_children():
+
+            widget.config(
+                bg="#ECFDF5"
+            )
+
+    def leave(event=None):
+
+        card.config(
+            bg="white"
+        )
+
+        for widget in card.winfo_children():
+
+            widget.config(
+                bg="white"
+            )
+
+    card.bind(
+        "<Enter>",
+        enter
+    )
+
+    card.bind(
+        "<Leave>",
+        leave
+    )
+
+    for widget in card.winfo_children():
+
+        widget.bind(
+            "<Enter>",
+            enter
+        )
+
+        widget.bind(
+            "<Leave>",
+            leave
+        )
+
+    return card
+
+
+# =========================================================
+# SHOW ALL COURSES
+# =========================================================
+
+def show_all_courses():
+
+    for widget in course_list_frame.winfo_children():
+
+        widget.destroy()
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT course_code, course_name, features
+        FROM courses
+        ORDER BY id
+    """)
+
+    courses = cur.fetchall()
+
+    conn.close()
+
+    total = len(courses)
+
+    result_title.config(
+        text=f"Available Courses ({total})"
+    )
+
+    for column in range(4):
+
+        course_list_frame.grid_columnconfigure(
+            column,
+            weight=1,
+            uniform="course_columns"
+        )
+
+    for i, (code, name, features) in enumerate(courses):
+
+        row = i // 4
+        column = i % 4
+
+        card = create_course_card(
+            course_list_frame,
+            code,
+            name,
+            features
+        )
+
+        card.grid(
+            row=row,
+            column=column,
+            padx=6,
+            pady=6,
+            sticky="nsew"
+        )
+
+
+# =========================================================
+# SUGGEST COURSE
+# =========================================================
+
+def suggest_course():
+
+    name = name_entry.get().strip()
+    characteristics = characteristics_entry.get().strip().lower()
+    skills = skills_entry.get().strip().lower()
+    interests = interests_entry.get().strip().lower()
+
+    if not name:
+        messagebox.showwarning(
+            "Missing Name",
+            "Please enter your name first."
+        )
+        return
+
+    combined = (
+        characteristics + " " +
+        skills + " " +
+        interests
+    )
+
+    keywords = [
+        word.strip()
+        for word in combined.replace(",", " ").split()
+        if word.strip()
+    ]
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT course_code, course_name, skills, features
+        FROM courses
+        ORDER BY id
+    """)
+
+    courses = cur.fetchall()
+
+    conn.close()
+
+    results = []
+
+    for course in courses:
+
+        code, course_name, course_skills, features = course
+
+        search_text = (
+            code + " " +
+            course_name + " " +
+            course_skills + " " +
+            features
+        ).lower()
+
+        score = 0
+
+        for keyword in keywords:
+
+            if keyword in search_text:
+                score += 1
+
+        if score > 0:
+
+            results.append(
+                (
+                    score,
+                    code,
+                    course_name,
+                    features
+                )
+            )
+
+    results.sort(
+        reverse=True,
+        key=lambda x: x[0]
+    )
+
+    # Clear previous cards
+    for widget in course_list_frame.winfo_children():
+
+        widget.destroy()
+
+    if not results:
+
+        result_title.config(
+            text="No Matching Course"
+        )
+
+        no_result = tk.Label(
+            course_list_frame,
+            text=(
+                "No matching course found.\n\n"
+                "Try entering more skills, interests, "
+                "or characteristics."
+            ),
+            font=("Segoe UI", 11),
+            bg="white",
+            fg="#64748B",
+            justify="center",
+            pady=50
+        )
+
+        no_result.grid(
+            row=0,
+            column=0,
+            columnspan=4,
+            sticky="nsew"
+        )
+
+        return
+
+    result_title.config(
+        text=f"Recommended Courses ({len(results)})"
+    )
+
+    for column in range(4):
+
+        course_list_frame.grid_columnconfigure(
+            column,
+            weight=1,
+            uniform="course_columns"
+        )
+
+    for i, result in enumerate(results):
+
+        score, code, course_name, features = result
+
+        row = i // 4
+        column = i % 4
+
+        card = create_course_card(
+            course_list_frame,
+            code,
+            course_name,
+            features
+        )
+
+        card.grid(
+            row=row,
+            column=column,
+            padx=6,
+            pady=6,
+            sticky="nsew"
+        )
+
+
+# =========================================================
+# CLEAR INPUTS
+# =========================================================
+
+def clear_inputs():
+
+    name_entry.delete(
+        0,
+        tk.END
+    )
+
+    characteristics_entry.delete(
+        0,
+        tk.END
+    )
+
+    skills_entry.delete(
+        0,
+        tk.END
+    )
+
+    interests_entry.delete(
+        0,
+        tk.END
+    )
+
+    name_entry.focus()
+
+    show_all_courses()
+
+
+# =========================================================
+# MOUSE WHEEL FOR COURSE LIST
+# =========================================================
+
+def course_mouse_wheel(event):
+
+    course_canvas.yview_scroll(
+        int(-1 * (event.delta / 120)),
+        "units"
+    )
+
+
+# =========================================================
+# MAIN WINDOW
+# =========================================================
+
+create_table()
+
+root = tk.Tk()
+
+root.title(
+    "MyCourse - Course Recommender"
+)
+
+root.geometry(
+    "1150x720"
+)
+
+root.minsize(
+    1000,
+    650
+)
+
+root.config(
+    bg="#F1F5F9"
+)
+
+
+# =========================================================
+# HEADER
+# =========================================================
+
+header = tk.Frame(
+    root,
+    bg="#0F172A",
+    height=85
+)
+
+header.pack(
+    fill="x"
+)
+
+header.pack_propagate(
+    False
+)
+
+title_frame = tk.Frame(
+    header,
+    bg="#0F172A"
+)
+
+title_frame.pack(
+    side="left",
+    padx=25
+)
+
+tk.Label(
+    title_frame,
+    text="MyCourse",
+    font=("Segoe UI", 25, "bold"),
+    bg="#0F172A",
+    fg="#34D399"
+).pack(
+    anchor="w",
+    pady=(10, 0)
+)
+
+tk.Label(
+    title_frame,
+    text="Course Recommendation System",
+    font=("Segoe UI", 10),
+    bg="#0F172A",
+    fg="#CBD5E1"
+).pack(
+    anchor="w"
+)
+
+
+tk.Button(
+    header,
+    text="PHINMA UPang Info",
+    font=("Segoe UI", 9, "bold"),
+    bg="#10B981",
+    fg="white",
+    activebackground="#059669",
+    activeforeground="white",
+    relief="flat",
+    cursor="hand2",
+    padx=15,
+    pady=7,
+    command=show_phinma_details
+).pack(
+    side="right",
+    padx=20,
+    pady=20
+)
+
+
+# =========================================================
+# MAIN CONTAINER
+# =========================================================
+
+main_container = tk.Frame(
+    root,
+    bg="#F1F5F9"
+)
+
+main_container.pack(
+    fill="both",
+    expand=True,
+    padx=15,
+    pady=15
+)
+
+main_container.grid_columnconfigure(
+    0,
+    minsize=310,
+    weight=0
+)
+
+main_container.grid_columnconfigure(
+    1,
+    weight=1
+)
+
+main_container.grid_rowconfigure(
+    0,
+    weight=1
+)
+
+
+# =========================================================
+# LEFT INPUT CARD
+# =========================================================
+
+input_card = tk.Frame(
+    main_container,
+    bg="white",
+    bd=1,
+    relief="solid",
+    padx=20,
+    pady=20
+)
+
+input_card.grid(
+    row=0,
+    column=0,
+    sticky="nsew",
+    padx=(0, 10)
+)
+
+
+tk.Label(
+    input_card,
+    text="Tell us about you",
+    font=("Segoe UI", 17, "bold"),
+    bg="white",
+    fg="#0F172A"
+).pack(
+    anchor="w"
+)
+
+tk.Label(
+    input_card,
+    text="Enter your information to get course suggestions.",
+    font=("Segoe UI", 9),
+    bg="white",
+    fg="#64748B",
+    wraplength=260,
+    justify="left"
+).pack(
+    anchor="w",
+    pady=(3, 20)
+)
+
+
+def create_input_label(text):
+
+    tk.Label(
+        input_card,
+        text=text,
+        font=("Segoe UI", 9, "bold"),
+        bg="white",
+        fg="#334155"
+    ).pack(
+        anchor="w",
+        pady=(8, 5)
+    )
+
+
+def create_input():
+
+    entry = tk.Entry(
+        input_card,
+        font=("Segoe UI", 10),
+        bg="#F8FAFC",
+        fg="#0F172A",
+        relief="solid",
+        bd=1
+    )
+
+    entry.pack(
+        fill="x",
+        ipady=7
+    )
+
+    return entry
+
+
+create_input_label(
+    "Name"
+)
+
+name_entry = create_input()
+
+
+create_input_label(
+    "Characteristics"
+)
+
+characteristics_entry = create_input()
+
+
+create_input_label(
+    "Skills"
+)
+
+skills_entry = create_input()
+
+
+create_input_label(
+    "Interests"
+)
+
+interests_entry = create_input()
+
+
+# =========================================================
+# BUTTONS
+# =========================================================
+
+tk.Button(
+    input_card,
+    text="Find My Course",
+    font=("Segoe UI", 10, "bold"),
+    bg="#10B981",
+    fg="white",
+    activebackground="#059669",
+    activeforeground="white",
+    relief="flat",
+    cursor="hand2",
+    command=suggest_course
+).pack(
+    fill="x",
+    pady=(25, 8),
+    ipady=8
+)
+
+
+tk.Button(
+    input_card,
+    text="Show All Courses",
+    font=("Segoe UI", 9, "bold"),
+    bg="#E2E8F0",
+    fg="#334155",
+    activebackground="#CBD5E1",
+    relief="flat",
+    cursor="hand2",
+    command=show_all_courses
+).pack(
+    fill="x",
+    pady=3,
+    ipady=7
+)
+
+
+tk.Button(
+    input_card,
+    text="Clear",
+    font=("Segoe UI", 9),
+    bg="#F1F5F9",
+    fg="#475569",
+    activebackground="#E2E8F0",
+    relief="flat",
+    cursor="hand2",
+    command=clear_inputs
+).pack(
+    fill="x",
+    pady=3,
+    ipady=7
+)
+
+
+# =========================================================
+# RIGHT RESULT CARD
+# =========================================================
+
+result_card = tk.Frame(
+    main_container,
+    bg="white",
+    bd=1,
+    relief="solid",
+    padx=15,
+    pady=15
+)
+
+result_card.grid(
+    row=0,
+    column=1,
+    sticky="nsew"
+)
+
+result_card.grid_rowconfigure(
+    1,
+    weight=1
+)
+
+result_card.grid_columnconfigure(
+    0,
+    weight=1
+)
+
+
+# =========================================================
+# RESULT HEADER
+# =========================================================
+
+result_header = tk.Frame(
+    result_card,
+    bg="white"
+)
+
+result_header.grid(
+    row=0,
+    column=0,
+    sticky="ew",
+    pady=(0, 10)
+)
+
+result_title = tk.Label(
+    result_header,
+    text="Available Courses",
+    font=("Segoe UI", 17, "bold"),
+    bg="white",
+    fg="#0F172A"
+)
+
+result_title.pack(
+    side="left"
+)
+
+tk.Label(
+    result_header,
+    text="Click a course to view complete information",
+    font=("Segoe UI", 9),
+    bg="white",
+    fg="#64748B"
+).pack(
+    side="right",
+    padx=5
+)
+
+
+# =========================================================
+# COURSE CANVAS
+# =========================================================
+
+course_outer = tk.Frame(
+    result_card,
+    bg="#F8FAFC"
+)
+
+course_outer.grid(
+    row=1,
+    column=0,
+    sticky="nsew"
+)
+
+course_outer.grid_rowconfigure(
+    0,
+    weight=1
+)
+
+course_outer.grid_columnconfigure(
+    0,
+    weight=1
+)
+
+
+course_canvas = tk.Canvas(
+    course_outer,
+    bg="#F8FAFC",
+    highlightthickness=0
+)
+
+course_scrollbar = tk.Scrollbar(
+    course_outer,
+    orient="vertical",
+    command=course_canvas.yview
+)
+
+course_list_frame = tk.Frame(
+    course_canvas,
+    bg="#F8FAFC"
+)
+
+course_window = course_canvas.create_window(
+    (0, 0),
+    window=course_list_frame,
+    anchor="nw"
+)
+
+
+def update_course_scroll(event=None):
+
+    course_canvas.configure(
+        scrollregion=course_canvas.bbox("all")
+    )
+
+
+def resize_course_frame(event):
+
+    course_canvas.itemconfigure(
+        course_window,
+        width=event.width
+    )
+
+
+course_list_frame.bind(
+    "<Configure>",
+    update_course_scroll
+)
+
+course_canvas.bind(
+    "<Configure>",
+    resize_course_frame
+)
+
+course_canvas.configure(
+    yscrollcommand=course_scrollbar.set
+)
+
+course_canvas.grid(
+    row=0,
+    column=0,
+    sticky="nsew"
+)
+
+course_scrollbar.grid(
+    row=0,
+    column=1,
+    sticky="ns"
+)
+
+
+# =========================================================
+# MOUSE WHEEL
+# =========================================================
+
+course_canvas.bind(
+    "<MouseWheel>",
+    course_mouse_wheel
+)
+
+course_list_frame.bind(
+    "<MouseWheel>",
+    course_mouse_wheel
+)
+
+
+# =========================================================
+# START
+# =========================================================
+
+show_all_courses()
+
+name_entry.focus()
+
+root.mainloop()
